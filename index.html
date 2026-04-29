@@ -1,0 +1,542 @@
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Brain, List, CheckCircle, XCircle, ArrowRight, Home, ChevronRight, RotateCcw } from 'lucide-react';
+
+// --- データ定義 ---
+
+const studyText = [
+  {
+    title: "タイトル",
+    lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur.",
+    jp: "自然数の累乗から生じる逆数の級数の和に関する第二の論文。そこでは同じ和が全く異なる源から導出される。"
+  },
+  {
+    title: "§. I. (前半)",
+    lat: "Postquam ante complures annos summas serierum in hac forma generali contentarum 1 + 1/2ⁿ + 1/3ⁿ + ... in infinitum, si n fuerit numerus par positivus, simulque etiam harum serierum, si n fuerit numerus impar 1 - 1/3ⁿ + 1/5ⁿ - ... in infinitum, ope quadraturae circuli exhibuissem,",
+    jp: "数年前、一般形 1+1/2ⁿ+...（無限に続く）に含まれる級数の和を、もしnが正の偶数であれば、また同時に、もしnが奇数であれば、これらの級数 1-1/3ⁿ+...（無限に続く）の和を、円積法（円の求積）の助けを借りて私が示し、"
+  },
+  {
+    title: "§. I. (中盤)",
+    lat: "atque ostendissem, summam perpetuo per eandem peripheriae circuli dignitatem, quam exponens n indicet, exprimi:",
+    jp: "そして和が常に、指数nが示すのと同じ円周のべき乗によって表現されることを示した後、"
+  },
+  {
+    title: "§. I. (後半)",
+    lat: "argumentum hoc acutissimis Geometris tantopere placuit, ut id non solum maxime probarent, verum etiam ipsi studium atque operam ad easdem summas methodis sibi familiaribus eruendas impenderent.",
+    jp: "この主題は極めて鋭敏な幾何学者たちに大いに気に入られたので、彼らはそれを大いに承認しただけでなく、彼ら自身も自分たちに馴染みのある方法で同じ和を導出することに熱意と労力を注いだ。"
+  }
+];
+
+const vocabData = [
+  { q: "summa", options: ["和", "差", "積", "商"], a: "和", exp: "summa, -ae (f): 合計、和" },
+  { q: "series", options: ["級数", "関数", "極限", "変数"], a: "級数", exp: "series, -ei (f): 連続、級数" },
+  { q: "reciprocus", options: ["逆数の", "連続の", "無限の", "等しい"], a: "逆数の", exp: "reciprocus, -a, -um: 逆の、往復の" },
+  { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 力、権力。（数学で）累乗" },
+  { q: "diversus", options: ["異なる", "同じ", "平らな", "垂直の"], a: "異なる", exp: "diversus, -a, -um: 異なる、反対の" },
+  { q: "par", options: ["偶数の", "奇数の", "素数の", "虚数の"], a: "偶数の", exp: "par, paris: 等しい。（数学で）偶数の" },
+  { q: "impar", options: ["奇数の", "偶数の", "負の", "正の"], a: "奇数の", exp: "impar, imparis: 等しくない。（数学で）奇数の" },
+  { q: "ope", options: ["力・手段で", "頭脳で", "時間で", "空間で"], a: "力・手段で", exp: "ops, opis (f) の奪格。ope + 属格で「～の助けにより手段として」" },
+  { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周（ギリシャ語由来）" },
+  { q: "eruo", options: ["導き出す", "隠す", "足す", "掛ける"], a: "導き出す", exp: "eruo, eruere: 掘り出す、見つけ出す、導き出す" }
+];
+
+const grammarData = [
+  { 
+    q: "「De summis」の summis は何格ですか？", 
+    options: ["奪格", "主格", "属格", "対格"], 
+    a: "奪格", 
+    exp: "前置詞 de（～について）は奪格を支配します。" 
+  },
+  { 
+    q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", 
+    options: ["serierum", "summis", "numerorum", "potestatibus"], 
+    a: "serierum", 
+    exp: "ortarum は属格・複数・女性です。少し離れていますが、同じ性・数・格の serierum（級数の）を修飾しています。" 
+  },
+  { 
+    q: "「in qua」の qua の先行詞は何ですか？", 
+    options: ["dissertatio", "summationes", "fonte", "ortarum"], 
+    a: "dissertatio", 
+    exp: "qua は単数・女性・奪格の関係代名詞です。直前にある dissertatio（論文）を指し、「その論文の中で」という意味になります。" 
+  },
+  { 
+    q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", 
+    options: ["結果（～なので...だ）", "目的（～するために）", "譲歩（～だけれども）", "時間（～する時）"], 
+    a: "結果（～なので...だ）", 
+    exp: "tantopere（それほどまでに）という副詞と呼応して、「それほどまでに気に入った、その結果～」という意味を作ります。" 
+  },
+  { 
+    q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", 
+    options: ["動形容詞（目的）", "現在分詞", "完了分詞", "不定法"], 
+    a: "動形容詞（目的）", 
+    exp: "ad + 対格の動形容詞（ゲルンディウム的用法）で「～するために」という目的を表します。summas に性・数・格が一致しています。" 
+  }
+];
+
+const translationData = [
+  {
+    lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum",
+    chunks: ["自然数の", "累乗から", "生じた", "逆数の級数の", "和について"],
+    exp: "De(～について) summis(和) serierum(級数の) reciprocarum(逆数の) ex(～から) potestatibus(累乗) numerorum(数の) naturalium(自然の) ortarum(生じた)"
+  },
+  {
+    lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur",
+    chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"],
+    exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から) maxime diverso(全く異なる) derivantur(導出される)"
+  },
+  {
+    lat: "argumentum hoc acutissimis Geometris tantopere placuit,",
+    chunks: ["この主題は", "極めて鋭敏な幾何学者たちに", "大いに気に入られたので,"],
+    exp: "argumentum hoc(この主題は) acutissimis(極めて鋭敏な) Geometris(幾何学者たちに) tantopere(それほどまでに) placuit(気に入られた)"
+  },
+  {
+    lat: "ut id non solum maxime probarent,",
+    chunks: ["彼らは", "それを", "大いに", "承認した", "だけでなく,"],
+    exp: "ut(その結果) id(それを) non solum(～だけでなく) maxime(大いに) probarent(彼らは承認した)"
+  },
+  {
+    lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent",
+    chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"],
+    exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) ad ... eruendas(導き出すために) easdem summas(同じ和を) impenderent(彼らは注いだ)"
+  }
+];
+
+// --- コンポーネント群 ---
+
+export default function App() {
+  const [view, setView] = useState('home');
+  const [scoreInfo, setScoreInfo] = useState({ score: 0, total: 0, mode: '' });
+
+  const finishQuiz = (score, total, mode) => {
+    setScoreInfo({ score, total, mode });
+    setView('result');
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-100 text-stone-800 font-sans pb-10">
+      <div className="max-w-2xl mx-auto bg-white min-h-screen md:min-h-[800px] shadow-xl md:mt-8 md:rounded-2xl overflow-hidden border border-stone-200 flex flex-col">
+        {/* Header */}
+        <div className="bg-stone-800 text-stone-50 p-4 flex items-center justify-between shadow-md z-10">
+          <h1 className="text-xl font-serif font-bold tracking-wide">Euler's Latin Quest</h1>
+          {view !== 'home' && (
+            <button 
+              onClick={() => setView('home')} 
+              className="p-2 hover:bg-stone-700 rounded-full transition-colors flex items-center gap-1 text-sm"
+            >
+              <Home size={18} /> <span className="hidden md:inline">ホーム</span>
+            </button>
+          )}
+        </div>
+
+        {/* Content Body */}
+        <div className="flex-1 overflow-y-auto bg-[#fdfbf7]">
+          {view === 'home' && <HomeView setView={setView} />}
+          {view === 'study' && <StudyView setView={setView} />}
+          {view === 'word' && <QuizView data={vocabData} modeName="単語クエスト" onFinish={(s, t) => finishQuiz(s, t, '単語クエスト')} />}
+          {view === 'grammar' && <QuizView data={grammarData} modeName="文法クエスト" onFinish={(s, t) => finishQuiz(s, t, '文法クエスト')} />}
+          {view === 'translation' && <TranslationQuiz data={translationData} onFinish={(s, t) => finishQuiz(s, t, '和訳クエスト')} />}
+          {view === 'result' && <ResultView scoreInfo={scoreInfo} setView={setView} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ホーム画面
+function HomeView({ setView }) {
+  return (
+    <div className="p-6 md:p-10 flex flex-col items-center justify-center h-full space-y-8 animate-fade-in">
+      <div className="text-center space-y-3">
+        <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-700">De summis serierum...</h2>
+        <p className="text-stone-500 text-sm md:text-base">オイラーのラテン語論文を読み解くゲーム</p>
+      </div>
+
+      <div className="w-full max-w-sm space-y-4">
+        <MenuButton 
+          icon={<BookOpen className="text-blue-600" />} 
+          title="学習モード" 
+          desc="テキストと和訳・解説を読む" 
+          onClick={() => setView('study')} 
+        />
+        <MenuButton 
+          icon={<List className="text-emerald-600" />} 
+          title="単語クエスト" 
+          desc="論文に登場する重要単語の4択" 
+          onClick={() => setView('word')} 
+        />
+        <MenuButton 
+          icon={<Brain className="text-purple-600" />} 
+          title="文法クエスト" 
+          desc="ラテン語の構文や格変化のクイズ" 
+          onClick={() => setView('grammar')} 
+        />
+        <MenuButton 
+          icon={<CheckCircle className="text-amber-600" />} 
+          title="和訳クエスト" 
+          desc="チャンクを並べ替えて正しい和訳を作る" 
+          onClick={() => setView('translation')} 
+        />
+      </div>
+    </div>
+  );
+}
+
+function MenuButton({ icon, title, desc, onClick }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center text-left p-4 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md hover:border-stone-300 transition-all active:scale-[0.98]"
+    >
+      <div className="p-3 bg-stone-50 rounded-lg mr-4">
+        {icon}
+      </div>
+      <div>
+        <h3 className="font-bold text-stone-800">{title}</h3>
+        <p className="text-xs text-stone-500 mt-1">{desc}</p>
+      </div>
+    </button>
+  );
+}
+
+// 学習モード
+function StudyView() {
+  const [tab, setTab] = useState('text'); // text, vocab, grammar
+
+  return (
+    <div className="p-4 md:p-8 flex flex-col h-full animate-fade-in">
+      <div className="flex rounded-lg bg-stone-200 p-1 mb-6">
+        <TabButton active={tab === 'text'} onClick={() => setTab('text')}>本文・和訳</TabButton>
+        <TabButton active={tab === 'vocab'} onClick={() => setTab('vocab')}>語彙</TabButton>
+        <TabButton active={tab === 'grammar'} onClick={() => setTab('grammar')}>文法</TabButton>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {tab === 'text' && (
+          <div className="space-y-6 pb-8">
+            {studyText.map((block, i) => (
+              <div key={i} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">{block.title}</h4>
+                <p className="font-serif text-stone-800 text-lg leading-relaxed mb-4">{block.lat}</p>
+                <div className="border-t border-stone-100 pt-3">
+                  <p className="text-stone-600 text-sm leading-relaxed">{block.jp}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'vocab' && (
+          <div className="space-y-3 pb-8">
+            {vocabData.map((v, i) => (
+              <div key={i} className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex items-start">
+                <div className="flex-1">
+                  <span className="font-serif font-bold text-lg text-stone-800 block">{v.q}</span>
+                  <span className="text-stone-500 text-sm">{v.exp}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'grammar' && (
+          <div className="space-y-4 pb-8">
+            {grammarData.map((g, i) => (
+              <div key={i} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <p className="font-bold text-stone-800 mb-2">Q. {g.q}</p>
+                <div className="bg-stone-50 p-3 rounded-lg mt-2 border border-stone-100">
+                  <span className="text-xs font-bold text-emerald-600 uppercase mb-1 block">解説</span>
+                  <p className="text-stone-600 text-sm">{g.exp}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TabButton({ children, active, onClick }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${
+        active ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// 4択クイズ汎用コンポーネント
+function QuizView({ data, modeName, onFinish }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+
+  const question = data[qIdx];
+  const isCorrect = selected === question.a;
+
+  const handleSelect = (opt) => {
+    if (selected) return; // 既に選択済みなら無視
+    setSelected(opt);
+    if (opt === question.a) {
+      setScore(s => s + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 < data.length) {
+      setQIdx(qIdx + 1);
+      setSelected(null);
+    } else {
+      onFinish(score + (isCorrect ? 1 : 0), data.length); // 最後の問題の結果を反映して終了
+    }
+  };
+
+  return (
+    <div className="p-4 md:p-8 flex flex-col h-full animate-fade-in">
+      <div className="flex justify-between items-center mb-6 text-sm font-bold text-stone-500">
+        <span>{modeName}</span>
+        <span>{qIdx + 1} / {data.length}</span>
+      </div>
+
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-200 mb-8 text-center min-h-[120px] flex items-center justify-center">
+        <h2 className="text-xl md:text-2xl font-serif text-stone-800">{question.q}</h2>
+      </div>
+
+      <div className="space-y-3 flex-1">
+        {question.options.map((opt, i) => {
+          let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-lg ";
+          if (!selected) {
+            btnClass += "bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50 active:scale-[0.98]";
+          } else {
+            if (opt === question.a) {
+              btnClass += "bg-emerald-50 border-emerald-500 text-emerald-800";
+            } else if (opt === selected) {
+              btnClass += "bg-rose-50 border-rose-400 text-rose-800";
+            } else {
+              btnClass += "bg-white border-stone-100 text-stone-400 opacity-50";
+            }
+          }
+
+          return (
+            <button 
+              key={i} 
+              onClick={() => handleSelect(opt)}
+              disabled={!!selected}
+              className={btnClass}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      {selected && (
+        <div className="mt-6 animate-fade-in-up">
+          <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+            <div className="flex items-center gap-2 font-bold mb-1">
+              {isCorrect ? <CheckCircle size={20} /> : <XCircle size={20} />}
+              <span>{isCorrect ? '正解！' : '不正解...'}</span>
+            </div>
+            <p className="text-sm mt-2">{question.exp}</p>
+          </div>
+          <button 
+            onClick={handleNext}
+            className="w-full py-4 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-[0.98]"
+          >
+            {qIdx + 1 === data.length ? '結果を見る' : '次の問題へ'} <ArrowRight size={20} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 並べ替え和訳クイズ
+function TranslationQuiz({ data, onFinish }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [available, setAvailable] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const question = data[qIdx];
+  const isCorrect = selected.join('') === question.chunks.join('');
+
+  useEffect(() => {
+    // 問題が変わるたびにチャンクをシャッフル
+    const shuffled = [...question.chunks].sort(() => Math.random() - 0.5);
+    setAvailable(shuffled);
+    setSelected([]);
+    setHasAnswered(false);
+  }, [qIdx, question]);
+
+  const selectChunk = (chunk, idx) => {
+    if (hasAnswered) return;
+    const newAvailable = [...available];
+    newAvailable.splice(idx, 1);
+    setAvailable(newAvailable);
+    setSelected([...selected, chunk]);
+  };
+
+  const deselectChunk = (chunk, idx) => {
+    if (hasAnswered) return;
+    const newSelected = [...selected];
+    newSelected.splice(idx, 1);
+    setSelected(newSelected);
+    setAvailable([...available, chunk]);
+  };
+
+  const checkAnswer = () => {
+    if (selected.length !== question.chunks.length) return;
+    setHasAnswered(true);
+    if (isCorrect) {
+      setScore(s => s + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (qIdx + 1 < data.length) {
+      setQIdx(qIdx + 1);
+    } else {
+      onFinish(score + (isCorrect ? 1 : 0), data.length);
+    }
+  };
+
+  const isComplete = selected.length === question.chunks.length;
+
+  return (
+    <div className="p-4 md:p-8 flex flex-col h-full animate-fade-in">
+      <div className="flex justify-between items-center mb-4 text-sm font-bold text-stone-500">
+        <span>和訳並べ替えクエスト</span>
+        <span>{qIdx + 1} / {data.length}</span>
+      </div>
+
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-200 mb-6">
+        <p className="font-serif text-lg text-stone-800 leading-relaxed">
+          {question.lat}
+        </p>
+      </div>
+
+      {/* 回答エリア (上段) */}
+      <div className="mb-6">
+        <p className="text-xs font-bold text-stone-400 mb-2 pl-1">あなたの解答（タップで戻す）</p>
+        <div className="min-h-[100px] bg-stone-200/50 rounded-xl border-2 border-dashed border-stone-300 p-3 flex flex-wrap gap-2 items-start content-start">
+          {selected.map((chunk, i) => (
+            <button
+              key={`sel-${i}`}
+              onClick={() => deselectChunk(chunk, i)}
+              disabled={hasAnswered}
+              className={`px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition-transform active:scale-95
+                ${hasAnswered 
+                  ? (isCorrect ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300')
+                  : 'bg-white text-stone-800 border border-stone-200 hover:bg-stone-50'}`}
+            >
+              {chunk}
+            </button>
+          ))}
+          {selected.length === 0 && <span className="text-stone-400 text-sm m-2">下のブロックをタップして選択</span>}
+        </div>
+      </div>
+
+      {/* 選択肢エリア (下段) */}
+      <div className="flex-1">
+        <p className="text-xs font-bold text-stone-400 mb-2 pl-1">選択肢</p>
+        <div className="flex flex-wrap gap-2">
+          {available.map((chunk, i) => (
+            <button
+              key={`avail-${i}`}
+              onClick={() => selectChunk(chunk, i)}
+              disabled={hasAnswered}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm shadow-md hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50"
+            >
+              {chunk}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* アクションボタン / フィードバック */}
+      <div className="mt-8">
+        {!hasAnswered ? (
+          <button
+            onClick={checkAnswer}
+            disabled={!isComplete}
+            className={`w-full py-4 font-bold rounded-xl flex items-center justify-center transition-all
+              ${isComplete 
+                ? 'bg-stone-800 hover:bg-stone-900 text-white shadow-md active:scale-[0.98]' 
+                : 'bg-stone-200 text-stone-400 cursor-not-allowed'}`}
+          >
+            解答を判定する
+          </button>
+        ) : (
+          <div className="animate-fade-in-up">
+            <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+              <div className="flex items-center gap-2 font-bold mb-2">
+                {isCorrect ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                <span>{isCorrect ? '見事な翻訳です！' : '惜しい！正しい順番は...'}</span>
+              </div>
+              {!isCorrect && (
+                <div className="bg-white/50 p-3 rounded-lg text-sm font-bold mb-2">
+                  {question.chunks.join(' ')}
+                </div>
+              )}
+              <p className="text-xs mt-2 opacity-90">{question.exp}</p>
+            </div>
+            <button 
+              onClick={handleNext}
+              className="w-full py-4 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-[0.98]"
+            >
+              {qIdx + 1 === data.length ? '結果を見る' : '次の問題へ'} <ArrowRight size={20} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// リザルト画面
+function ResultView({ scoreInfo, setView }) {
+  const { score, total, mode } = scoreInfo;
+  const ratio = score / total;
+  
+  let message = "素晴らしい成績です！";
+  let color = "text-emerald-500";
+  if (ratio < 0.6) {
+    message = "あともう少し！学習モードで復習しましょう。";
+    color = "text-amber-500";
+  }
+  if (ratio === 1) {
+    message = "完璧です！オイラーの魂が宿っています！";
+  }
+
+  return (
+    <div className="p-8 flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in">
+      <div>
+        <h2 className="text-xl font-bold text-stone-500 mb-2">{mode} 完了</h2>
+        <div className={`text-6xl font-black font-serif mb-4 ${color}`}>
+          {score} <span className="text-3xl text-stone-300">/</span> {total}
+        </div>
+        <p className="text-stone-700 font-medium">{message}</p>
+      </div>
+
+      <div className="w-full max-w-xs space-y-3 pt-8">
+        <button 
+          onClick={() => setView('home')}
+          className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold hover:bg-stone-900 flex justify-center items-center gap-2 transition-all active:scale-95 shadow-md"
+        >
+          <Home size={20} /> ホームに戻る
+        </button>
+        <button 
+          onClick={() => setView('study')}
+          className="w-full py-4 bg-white border-2 border-stone-200 text-stone-700 rounded-xl font-bold hover:bg-stone-50 hover:border-stone-300 flex justify-center items-center gap-2 transition-all active:scale-95"
+        >
+          <BookOpen size={20} /> 学習モードで復習
+        </button>
+      </div>
+    </div>
+  );
+}
