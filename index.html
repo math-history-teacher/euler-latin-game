@@ -1,68 +1,22 @@
-// --- データ定義 ---
+<!-- 上の方のHTMLは省略 -->
+<body class="bg-stone-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- アイコン (省略) ---
+
+        // ここから！
+        // --- データ定義 ---
         const studyText = [
-            { title: "タイトル", lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur.", jp: "自然数の累乗から生じる逆数の級数の和に関する第二の論文。そこでは同じ和が全く異なる源から導出される。" },
-            { title: "§. I. (前半)", lat: "Postquam ante complures annos summas serierum in hac forma generali contentarum 1 + 1/2ⁿ + 1/3ⁿ + ... in infinitum, si n fuerit numerus par positivus, simulque etiam harum serierum, si n fuerit numerus impar 1 - 1/3ⁿ + 1/5ⁿ - ... in infinitum, ope quadraturae circuli exhibuissem,", jp: "数年前、一般形 1+1/2ⁿ+...（無限に続く）に含まれる級数の和を、もしnが正の偶数であれば、また同時に、もしnが奇数であれば、これらの級数 1-1/3ⁿ+...（無限に続く）の和を、円積法（円の求積）の助けを借りて私が示し、" },
-            { title: "§. I. (中盤1)", lat: "atque ostendissem, summam perpetuo per eandem peripheriae circuli dignitatem, quam exponens n indicet, exprimi:", jp: "そして和が常に、指数nが示すのと同じ円周のべき乗によって表現されることを示した後、" },
-            { title: "§. I. (中盤2)", lat: "argumentum hoc acutissimis Geometris tantopere placuit, ut id non solum maxime probarent, verum etiam ipsi studium atque operam ad easdem summas methodis sibi familiaribus eruendas impenderent.", jp: "この主題は極めて鋭敏な幾何学者たちに大いに気に入られたので、彼らはそれを大いに承認しただけでなく、彼ら自身も自分たちに馴染みのある方法で同じ和を導出することに熱意と労力を注いだ。" },
-            { title: "§. I. (後半1)", lat: "Ego quoque ab illo tempore multum fui occupatus in alia via investiganda, quae eodem deduceret,", jp: "私もまたその時から、同じ結果へ導く別の道（方法）を探求することに大いに専念してきた。" },
-            { title: "§. I. (後半2)", lat: "non tam ut veritatem inventam magis confirmarem, quam ut limites analyseos in hujus generis seriebus tractandis ulterius extenderem.", jp: "それは、発見された真理をさらに確証するためというよりはむしろ、この種の級数を扱う際の解析学の限界をさらに拡張するためであった。" }
-        ];
-
-        const vocabData = [
-            // 名詞・形容詞
-            { q: "summa", options: ["和", "差", "積", "商"], a: "和", exp: "summa, -ae (f): 合計、和。" },
-            { q: "series", options: ["級数", "関数", "極限", "変数"], a: "級数", exp: "series, -ei (f): 連続、級数。" },
-            { q: "reciprocus", options: ["逆数の", "連続の", "無限の", "等しい"], a: "逆数の", exp: "reciprocus, -a, -um: 逆の、往復の。数学では「逆数」。" },
-            { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 力。数学用語で「累乗（べき乗）」。" },
-            { q: "naturalis", options: ["自然の", "複雑な", "整った", "未知の"], a: "自然の", exp: "naturalis, -e: 自然の。numerorum naturalium で「自然数の」。" },
-            { q: "dissertatio", options: ["論文", "公式", "計算", "図形"], a: "論文", exp: "dissertatio, -onis (f): 論説、論文。" },
-            { q: "fons", options: ["源泉", "境界", "公式", "結果"], a: "源泉", exp: "fons, fontis (m): 泉、源。「異なる源から（ex fonte diverso）」。" },
-            { q: "diversus", options: ["異なる", "同じ", "平らな", "垂直の"], a: "異なる", exp: "diversus, -a, -um: 異なる、反対の。" },
-            { q: "complures", options: ["かなりの数の", "少数の", "無限の", "ゼロの"], a: "かなりの数の", exp: "complures, -a: かなりの数の、複数の。ante complures annos で「数年前」。" },
-            { q: "par", options: ["偶数の", "奇数の", "素数の", "虚数の"], a: "偶数の", exp: "par, paris: 等しい。数学で「偶数の」。" },
-            { q: "impar", options: ["奇数の", "偶数の", "負の", "正の"], a: "奇数の", exp: "impar, imparis: 等しくない。数学で「奇数の」。" },
-            { q: "ope", options: ["手段で", "頭脳で", "時間で", "空間で"], a: "手段で", exp: "ops（力）の奪格。ope + 属格で「～の手段（助け）によって」。" },
-            { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周。ギリシャ語由来。" },
-            { q: "dignitas", options: ["べき乗", "価値", "面積", "長さ"], a: "べき乗", exp: "dignitas, -atis (f): 威厳。当時は数学用語で「累乗（べき乗）」としても使われました。" },
-            { q: "exponens", options: ["指数", "係数", "変数", "定数"], a: "指数", exp: "exponens, -entis (m): 提示するもの。数学で「指数」。" },
-            { q: "argumentum", options: ["主題", "答え", "計算", "図"], a: "主題", exp: "argumentum, -i (n): 根拠、主題、議論。" },
-            { q: "acutus", options: ["鋭敏な", "有名な", "古い", "厳格な"], a: "鋭敏な", exp: "acutus, -a, -um: 鋭い。最上級（acutissimis）で「極めて鋭敏な」。" },
-            { q: "familiaris", options: ["馴染みのある", "新しい", "複雑な", "外国の"], a: "馴染みのある", exp: "familiaris, -e: 家族の、親しい、よく知っている。" },
-            { q: "veritas", options: ["真理", "偽り", "仮説", "証明"], a: "真理", exp: "veritas, -atis (f): 真理、真実。" },
-            { q: "limes", options: ["限界", "定義", "公式", "応用"], a: "限界", exp: "limes, -itis (m): 境界、限界。複数形で limites（限界）。" },
-            { q: "analysis", options: ["解析学", "幾何学", "代数学", "物理学"], a: "解析学", exp: "analysis, -is (f): 分析、解析学。ギリシャ語由来の単語です。" },
-            
-            // 動詞
-            { q: "ortus", options: ["生じた", "消えた", "等しい", "逆の"], a: "生じた", exp: "orior（生じる）の完了分詞。「～に由来する」。" },
-            { q: "exhibuissem", options: ["（私が）示した", "（私が）隠した", "（彼が）示した", "（彼が）隠した"], a: "（私が）示した", exp: "exhibeo（示す、提示する）の接続法・過去完了・1人称単数。" },
-            { q: "exprimi", options: ["表現される", "表現する", "計算される", "計算する"], a: "表現される", exp: "exprimo（表現する）の受動態・現在不定詞。" },
-            { q: "impenderent", options: ["費やした", "節約した", "思いついた", "諦めた"], a: "費やした", exp: "impendo（費やす、注ぐ）の接続法・未完了過去・3人称複数。" },
-            { q: "deduceret", options: ["導く", "戻る", "迷う", "止まる"], a: "導く", exp: "deduco（導き出す）の接続法・未完了過去・3人称単数。" },
-            { q: "confirmarem", options: ["確証する", "疑う", "発見する", "計算する"], a: "確証する", exp: "confirmo（強める、確実にする）の接続法・未完了過去・1人称単数。" },
-            { q: "extenderem", options: ["拡張する", "終わらせる", "整理する", "教える"], a: "拡張する", exp: "extendo（広げる、拡張する）の接続法・未完了過去・1人称単数。" }
-        ];
-
-        const grammarData = [
-            { q: "「De summis」の summis は何格ですか？", options: ["奪格", "主格", "属格", "対格"], a: "奪格", exp: "前置詞 de（～について）は奪格を支配します。" },
-            { q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", options: ["serierum", "summis", "numerorum", "potestatibus"], a: "serierum", exp: "ortarum は属格・複数・女性。離れた位置にある serierum（級数の）を修飾しています。" },
-            { q: "「in qua」の qua の先行詞は何ですか？", options: ["dissertatio", "summationes", "fonte", "ortarum"], a: "dissertatio", exp: "qua は単数・女性・奪格の関係代名詞。直前の dissertatio（論文）を指します。" },
-            { q: "「exhibuissem」の法と時制は何ですか？", options: ["接続法・過去完了", "直説法・未完了過去", "接続法・現在", "直説法・未来完了"], a: "接続法・過去完了", exp: "postquam（～した後）の節内で、過去の事象の完了を強調するために接続法過去完了が使われています。" },
-            { q: "「exprimi」はどのような形ですか？", options: ["不定法・受動態", "直説法・能動態", "命令法", "現在分詞"], a: "不定法・受動態", exp: "exprimo（表現する）の受動態・現在不定詞です。「表現されること」を意味します。" },
-            { q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", options: ["結果", "目的", "譲歩", "時間"], a: "結果", exp: "tantopere（それほどまでに）という副詞と呼応して、「その結果～」という意味を表します。" },
-            { q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", options: ["動形容詞", "現在分詞", "完了分詞", "不定法"], a: "動形容詞", exp: "ad + 対格の動形容詞（ゲルンディウム的用法）で「～するために」という目的を表します。" },
-            { q: "「in alia via investiganda」の文法構造として正しい説明は？", options: ["前置詞 in ＋ 奪格の動形容詞", "前置詞 in ＋ 対格の動名詞", "絶対奪格", "主格の補語"], a: "前置詞 in ＋ 奪格の動形容詞", exp: "in + 奪格で「～において」。動形容詞 investiganda が via に性数格一致し「道を探求することにおいて」となります。" },
-            { q: "「limites analyseos」の analyseos の格は何ですか？", options: ["属格", "主格", "対格", "奪格"], a: "属格", exp: "ギリシャ語由来の名詞 analysis のギリシャ語風の属格変化です。「解析学の限界」となります。" },
-            { q: "「non tam ut ... quam ut ...」の正しい訳し方は？", options: ["～するためというより、むしろ～するため", "～するためだけでなく、～するためにも", "～する時もあれば、～する時もある", "～しない限り、～できない"], a: "～するためというより、むしろ～するため", exp: "non tam A quam B で「AというよりはむしろB」という比較の構文を作ります。" }
-        ];
-
+            { title: "タイトル", lat: "De summis serierum..." // ← ここから先が新しいデータ
+        // ... (中略) ...
         const translationData = [
-            { lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum", chunks: ["自然数の", "累乗から", "生じた", "逆数の級数の", "和について"], exp: "De(～について) summis(和) serierum(級数の) reciprocarum(逆数の) ex(～から) potestatibus(累乗) numerorum(数の) naturalium(自然の) ortarum(生じた)" },
-            { lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur", chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"], exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から) maxime diverso(全く異なる) derivantur(導出される)" },
-            { lat: "argumentum hoc acutissimis Geometris tantopere placuit,", chunks: ["この主題は", "極めて鋭敏な幾何学者たちに", "大いに気に入られたので,"], exp: "argumentum hoc(この主題は) acutissimis(極めて鋭敏な) Geometris(幾何学者たちに) tantopere(それほどまでに) placuit(気に入られた)" },
-            { lat: "ut id non solum maxime probarent,", chunks: ["彼らは", "それを", "大いに", "承認した", "だけでなく,"], exp: "ut(その結果) id(それを) non solum(～だけでなく) maxime(大いに) probarent(彼らは承認した)" },
-            { lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent", chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"], exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) ad ... eruendas(導き出すために) easdem summas(同じ和を) impenderent(注いだ)" },
-            { lat: "Ego quoque ab illo tempore multum fui occupatus in alia via investiganda,", chunks: ["私もまた", "その時から", "別の道を探求することに", "大いに", "専念してきた,"], exp: "Ego quoque(私もまた) ab illo tempore(その時から) multum(大いに) fui occupatus(専念してきた) in alia via investiganda(別の道を探求することに)" },
-            { lat: "quae eodem deduceret,", chunks: ["そしてそれは", "同じ結果へ", "導く(道である)"], exp: "quae(そしてそれ=別の道が) eodem(同じ結果へ) deduceret(導くであろう)" },
-            { lat: "non tam ut veritatem inventam magis confirmarem,", chunks: ["発見された真理を", "さらに", "確証するため", "というよりはむしろ,"], exp: "non tam ut(～するためというよりは) veritatem inventam(発見された真理を) magis(さらに) confirmarem(確証する)" },
-            { lat: "quam ut limites analyseos in hujus generis seriebus tractandis ulterius extenderem.", chunks: ["この種の級数を", "扱う際の", "解析学の限界を", "さらに拡張する", "ためであった"], exp: "quam ut(むしろ～するため) limites analyseos(解析学の限界を) in hujus generis seriebus tractandis(この種の級数を扱う際において) ulterius(さらに) extenderem(拡張する)" }
+            // ... (中略) ...
         ];
+        // ここまで！
+
+        // --- 子コンポーネント ---
+        function MenuButton({ icon, title, desc, onClick }) {
+<!-- 下の方のHTMLは省略 -->
