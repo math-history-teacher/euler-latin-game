@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Euler's Latin Quest</title>
-    <!-- Reactとライブラリを読み込み -->
+    <!-- 必要なライブラリをCDNから読み込み -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -23,16 +23,15 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- Lucide Icons (簡略化したSVGで代用) ---
+        // --- アイコン (SVG形式で埋め込み) ---
         const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const BookOpen = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
         const List = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>;
         const Brain = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.54Z"/></svg>;
         const CheckCircle = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-        const XCircle = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
         const ArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
 
-        // --- データ定義 (あなたの提供したコードより) ---
+        // --- データ定義 ---
         const studyText = [
             { title: "タイトル", lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur.", jp: "自然数の累乗から生じる逆数の級数の和に関する第二の論文。そこでは同じ和が全く異なる源から導出される。" },
             { title: "§. I. (前半)", lat: "Postquam ante complures annos summas serierum in hac forma generali contentarum 1 + 1/2ⁿ + 1/3ⁿ + ... in infinitum, si n fuerit numerus par positivus, simulque etiam harum serierum, si n fuerit numerus impar 1 - 1/3ⁿ + 1/5ⁿ - ... in infinitum, ope quadraturae circuli exhibuissem,", jp: "数年前、一般形 1+1/2ⁿ+...（無限に続く）に含まれる級数の和を、もしnが正の偶数であれば、また同時に、もしnが奇数であれば、これらの級数 1-1/3ⁿ+...（無限に続く）の和を、円積法（円の求積）の助けを借りて私が示し、" },
@@ -44,29 +43,29 @@
             { q: "summa", options: ["和", "差", "積", "商"], a: "和", exp: "summa, -ae (f): 合計、和" },
             { q: "series", options: ["級数", "関数", "極限", "変数"], a: "級数", exp: "series, -ei (f): 連続、級数" },
             { q: "reciprocus", options: ["逆数の", "連続の", "無限の", "等しい"], a: "逆数の", exp: "reciprocus, -a, -um: 逆の、往復の" },
-            { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 力、権力。（数学で）累乗" },
+            { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 累乗" },
             { q: "diversus", options: ["異なる", "同じ", "平らな", "垂直の"], a: "異なる", exp: "diversus, -a, -um: 異なる、反対の" },
             { q: "par", options: ["偶数の", "奇数の", "素数の", "虚数の"], a: "偶数の", exp: "par, paris: 等しい。（数学で）偶数の" },
             { q: "impar", options: ["奇数の", "偶数の", "負の", "正の"], a: "奇数の", exp: "impar, imparis: 等しくない。（数学で）奇数の" },
-            { q: "ope", options: ["力・手段で", "頭脳で", "時間で", "空間で"], a: "力・手段で", exp: "ops, opis (f) の奪格。ope + 属格で「～の助けにより手段として」" },
-            { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周（ギリシャ語由来）" },
-            { q: "eruo", options: ["導き出す", "隠す", "足す", "掛ける"], a: "導き出す", exp: "eruo, eruere: 掘り出す、見つけ出す、導き出す" }
+            { q: "ope", options: ["力・手段で", "頭脳で", "時間で", "空間で"], a: "力・手段で", exp: "ops, opis (f) の奪格。ope + 助格で「～の助けにより手段として」" },
+            { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周" },
+            { q: "eruo", options: ["導き出す", "隠す", "足す", "掛ける"], a: "導き出す", exp: "eruo, eruere: 導き出す" }
         ];
 
         const grammarData = [
             { q: "「De summis」の summis は何格ですか？", options: ["奪格", "主格", "属格", "対格"], a: "奪格", exp: "前置詞 de（～について）は奪格を支配します。" },
-            { q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", options: ["serierum", "summis", "numerorum", "potestatibus"], a: "serierum", exp: "ortarum は属格・複数・女性です。少し離れていますが、同じ性・数・格の serierum（級数の）を修飾しています。" },
-            { q: "「in qua」の qua の先行詞は何ですか？", options: ["dissertatio", "summationes", "fonte", "ortarum"], a: "dissertatio", exp: "qua は単数・女性・奪格の関係代名詞です。直前にある dissertatio（論文）を指し、「その論文の中で」という意味になります。" },
-            { q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", options: ["結果（～なので...だ）", "目的（～するために）", "譲歩（～だけれども）", "時間（～する時）"], a: "結果（～なので...だ）", exp: "tantopere（それほどまでに）という副詞と呼応して、「それほどまでに気に入った、その結果～」という意味を作ります。" },
-            { q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", options: ["動形容詞（目的）", "現在分詞", "完了分詞", "不定法"], a: "動形容詞（目的）", exp: "ad + 対格の動形容詞（ゲルンディウム的用法）で「～するために」という目的を表します。summas に性・数・格が一致しています。" }
+            { q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", options: ["serierum", "summis", "numerorum", "potestatibus"], a: "serierum", exp: "ortarum は属格・複数・女性。serierum（級数の）を修飾しています。" },
+            { q: "「in qua」の qua の先行詞は何ですか？", options: ["dissertatio", "summationes", "fonte", "ortarum"], a: "dissertatio", exp: "qua は単数・女性・奪格の関係代名詞。dissertatio（論文）を指します。" },
+            { q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", options: ["結果", "目的", "譲歩", "時間"], a: "結果", exp: "tantopere（それほどまでに）と呼応して結果を表します。" },
+            { q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", options: ["動形容詞", "現在分詞", "完了分詞", "不定法"], a: "動形容詞", exp: "ad + 対格の動形容詞で目的を表します。" }
         ];
 
         const translationData = [
             { lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum", chunks: ["自然数の", "累乗から", "生じた", "逆数の級数の", "和について"], exp: "De(～について) summis(和) serierum(級数の) reciprocarum(逆数の) ex(～から) potestatibus(累乗) numerorum(数の) naturalium(自然の) ortarum(生じた)" },
-            { lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur", chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"], exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から) maxime diverso(全く異なる) derivantur(導出される)" },
+            { lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur", chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"], exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から)" },
             { lat: "argumentum hoc acutissimis Geometris tantopere placuit,", chunks: ["この主題は", "極めて鋭敏な幾何学者たちに", "大いに気に入られたので,"], exp: "argumentum hoc(この主題は) acutissimis(極めて鋭敏な) Geometris(幾何学者たちに) tantopere(それほどまでに) placuit(気に入られた)" },
             { lat: "ut id non solum maxime probarent,", chunks: ["彼らは", "それを", "大いに", "承認した", "だけでなく,"], exp: "ut(その結果) id(それを) non solum(～だけでなく) maxime(大いに) probarent(彼らは承認した)" },
-            { lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent", chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"], exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) ad ... eruendas(導き出すために) easdem summas(同じ和を) impenderent(彼らは注いだ)" }
+            { lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent", chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"], exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) impenderent(注いだ)" }
         ];
 
         // --- 子コンポーネント ---
@@ -103,7 +102,6 @@
             return (
                 <div className="min-h-screen bg-stone-100 text-stone-800 font-sans pb-10">
                     <div className="max-w-2xl mx-auto bg-white min-h-screen shadow-xl md:mt-8 md:rounded-2xl overflow-hidden flex flex-col border border-stone-200">
-                        {/* Header */}
                         <header className="bg-stone-800 text-stone-50 p-4 flex items-center justify-between shadow-md z-10">
                             <h1 className="text-xl font-serif font-bold tracking-wide">Euler's Latin Quest</h1>
                             {view !== 'home' && (
@@ -112,8 +110,6 @@
                                 </button>
                             )}
                         </header>
-
-                        {/* Content Body */}
                         <div className="flex-1 overflow-y-auto bg-[#fdfbf7] animate-fade-in">
                             {view === 'home' && <HomeView setView={setView} />}
                             {view === 'study' && <StudyView />}
@@ -132,13 +128,13 @@
                 <div className="p-8 flex flex-col items-center justify-center space-y-8">
                     <div className="text-center space-y-3">
                         <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-700">De summis serierum...</h2>
-                        <p className="text-stone-500 text-sm">オイラーのラテン語論文を読み解くゲーム</p>
+                        <p className="text-stone-500 text-sm">オイラーのラテン語論文読解ゲーム</p>
                     </div>
                     <div className="w-full max-w-sm space-y-4">
                         <MenuButton icon={<BookOpen />} title="学習モード" desc="テキストと和訳・解説を読む" onClick={() => setView('study')} />
-                        <MenuButton icon={<List />} title="単語クエスト" desc="論文に登場する重要単語の4択" onClick={() => setView('word')} />
-                        <MenuButton icon={<Brain />} title="文法クエスト" desc="ラテン語の構文や格変化のクイズ" onClick={() => setView('grammar')} />
-                        <MenuButton icon={<CheckCircle />} title="和訳クエスト" desc="チャンクを並べ替えて正しい和訳を作る" onClick={() => setView('translation')} />
+                        <MenuButton icon={<List />} title="単語クエスト" desc="論文の重要単語の4択クイズ" onClick={() => setView('word')} />
+                        <MenuButton icon={<Brain />} title="文法クエスト" desc="構文や格変化のクイズ" onClick={() => setView('grammar')} />
+                        <MenuButton icon={<CheckCircle />} title="和訳クエスト" desc="和訳並べ替えパズル" onClick={() => setView('translation')} />
                     </div>
                 </div>
             );
@@ -186,47 +182,21 @@
             const [selected, setSelected] = useState(null);
             const [score, setScore] = useState(0);
             const question = data[qIdx];
-
-            const handleSelect = (opt) => {
-                if (selected) return;
-                setSelected(opt);
-                if (opt === question.a) setScore(s => s + 1);
-            };
-
-            const handleNext = () => {
-                if (qIdx + 1 < data.length) {
-                    setQIdx(qIdx + 1);
-                    setSelected(null);
-                } else {
-                    onFinish(score + (selected === question.a ? 0 : 0), data.length, modeName);
-                }
-            };
-
+            const handleSelect = (opt) => { if (!selected) { setSelected(opt); if (opt === question.a) setScore(s => s + 1); } };
+            const handleNext = () => { if (qIdx + 1 < data.length) { setQIdx(qIdx + 1); setSelected(null); } else { onFinish(score, data.length, modeName); } };
             return (
                 <div className="p-6">
-                    <div className="flex justify-between items-center mb-6 text-sm font-bold text-stone-500">
-                        <span>{modeName}</span>
-                        <span>{qIdx + 1} / {data.length}</span>
-                    </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 text-center min-h-[120px] flex items-center justify-center">
-                        <h2 className="text-xl md:text-2xl font-serif text-stone-800">{question.q}</h2>
-                    </div>
+                    <div className="flex justify-between items-center mb-6 text-sm font-bold text-stone-500"><span>{modeName}</span><span>{qIdx + 1} / {data.length}</span></div>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 text-center min-h-[120px] flex items-center justify-center"><h2 className="text-xl md:text-2xl font-serif text-stone-800">{question.q}</h2></div>
                     <div className="space-y-3">
                         {question.options.map((opt, i) => (
-                            <button key={i} onClick={() => handleSelect(opt)} disabled={!!selected} className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-lg ${!selected ? 'bg-white border-stone-200 hover:border-stone-300' : opt === question.a ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : opt === selected ? 'bg-rose-50 border-rose-400 text-rose-800' : 'opacity-50'}`}>
-                                {opt}
-                            </button>
+                            <button key={i} onClick={() => handleSelect(opt)} disabled={!!selected} className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-lg ${!selected ? 'bg-white border-stone-200 hover:border-stone-300' : opt === question.a ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : opt === selected ? 'bg-rose-50 border-rose-400 text-rose-800' : 'opacity-50'}`}>{opt}</button>
                         ))}
                     </div>
                     {selected && (
                         <div className="mt-6 animate-fade-in">
-                            <div className={`p-4 rounded-xl mb-4 ${selected === question.a ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                                <p className="text-sm font-bold">{selected === question.a ? '正解！' : '不正解...'}</p>
-                                <p className="text-sm mt-1">{question.exp}</p>
-                            </div>
-                            <button onClick={handleNext} className="w-full py-4 bg-stone-800 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
-                                {qIdx + 1 === data.length ? '結果を見る' : '次の問題へ'} <ArrowRight />
-                            </button>
+                            <div className={`p-4 rounded-xl mb-4 ${selected === question.a ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}><p className="text-sm font-bold">{selected === question.a ? '正解！' : '不正解...'}</p><p className="text-sm mt-1">{question.exp}</p></div>
+                            <button onClick={handleNext} className="w-full py-4 bg-stone-800 text-white font-bold rounded-xl flex items-center justify-center gap-2"> {qIdx + 1 === data.length ? '結果を見る' : '次の問題へ'} <ArrowRight /> </button>
                         </div>
                     )}
                 </div>
@@ -240,43 +210,20 @@
             const [hasAnswered, setHasAnswered] = useState(false);
             const [score, setScore] = useState(0);
             const question = data[qIdx];
-
-            useEffect(() => {
-                setAvailable([...question.chunks].sort(() => Math.random() - 0.5));
-                setSelected([]);
-                setHasAnswered(false);
-            }, [qIdx, question]);
-
+            useEffect(() => { setAvailable([...question.chunks].sort(() => Math.random() - 0.5)); setSelected([]); setHasAnswered(false); }, [qIdx, question]);
             const selectChunk = (chunk, idx) => { if (!hasAnswered) { setAvailable(a => a.filter((_, i) => i !== idx)); setSelected(s => [...s, chunk]); } };
             const deselectChunk = (chunk, idx) => { if (!hasAnswered) { setSelected(s => s.filter((_, i) => i !== idx)); setAvailable(a => [...a, chunk]); } };
-
-            const check = () => {
-                setHasAnswered(true);
-                if (selected.join('') === question.chunks.join('')) setScore(s => s + 1);
-            };
-
+            const check = () => { setHasAnswered(true); if (selected.join('') === question.chunks.join('')) setScore(s => s + 1); };
             return (
                 <div className="p-6">
                     <div className="mb-4 text-sm font-bold text-stone-500">和訳並べ替え {qIdx + 1}/{data.length}</div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border mb-6 font-serif text-lg">{question.lat}</div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border mb-6 font-serif text-lg leading-relaxed">{question.lat}</div>
                     <div className="min-h-[100px] bg-stone-100/50 rounded-xl border-2 border-dashed p-3 flex flex-wrap gap-2 mb-6">
-                        {selected.map((c, i) => (
-                            <button key={i} onClick={() => deselectChunk(c, i)} className={`px-4 py-2 rounded-lg font-bold text-sm shadow-sm ${hasAnswered ? (selected.join('') === question.chunks.join('') ? 'bg-emerald-100' : 'bg-rose-100') : 'bg-white'}`}>{c}</button>
-                        ))}
+                        {selected.map((c, i) => <button key={i} onClick={() => deselectChunk(c, i)} className={`px-4 py-2 rounded-lg font-bold text-sm shadow-sm ${hasAnswered ? (selected.join('') === question.chunks.join('') ? 'bg-emerald-100' : 'bg-rose-100') : 'bg-white'}`}>{c}</button>)}
                     </div>
-                    <div className="flex flex-wrap gap-2 mb-8">
-                        {available.map((c, i) => (
-                            <button key={i} onClick={() => selectChunk(c, i)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm shadow-md transition-opacity" disabled={hasAnswered}>{c}</button>
-                        ))}
-                    </div>
-                    {!hasAnswered ? (
-                        <button onClick={check} disabled={selected.length !== question.chunks.length} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold disabled:opacity-30">解答を判定する</button>
-                    ) : (
-                        <div className="animate-fade-in">
-                            <div className="p-4 bg-stone-100 rounded-xl mb-4 text-sm">{question.exp}</div>
-                            <button onClick={() => qIdx + 1 < data.length ? setQIdx(qIdx + 1) : onFinish(score, data.length, "和訳並べ替え")} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold">次へ</button>
-                        </div>
-                    )}
+                    <div className="flex flex-wrap gap-2 mb-8">{available.map((c, i) => <button key={i} onClick={() => selectChunk(c, i)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm shadow-md" disabled={hasAnswered}>{c}</button>)}</div>
+                    {!hasAnswered ? <button onClick={check} disabled={selected.length !== question.chunks.length} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold disabled:opacity-30">判定する</button> : 
+                    <div className="animate-fade-in"><div className="p-4 bg-stone-100 rounded-xl mb-4 text-sm">{question.exp}</div><button onClick={() => qIdx + 1 < data.length ? setQIdx(qIdx + 1) : onFinish(score, data.length, "和訳並べ替え")} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold">次へ</button></div>}
                 </div>
             );
         }
@@ -284,14 +231,8 @@
         function ResultView({ scoreInfo, setView }) {
             return (
                 <div className="p-10 text-center space-y-8 animate-fade-in">
-                    <div>
-                        <h2 className="text-xl font-bold text-stone-500 mb-2">{scoreInfo.mode} 完了</h2>
-                        <div className="text-6xl font-black font-serif text-emerald-500">{scoreInfo.score} / {scoreInfo.total}</div>
-                    </div>
-                    <div className="w-full max-w-xs mx-auto space-y-3">
-                        <button onClick={() => setView('home')} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold shadow-md">ホームに戻る</button>
-                        <button onClick={() => setView('study')} className="w-full py-4 bg-white border-2 border-stone-200 text-stone-700 rounded-xl font-bold">学習モードで復習</button>
-                    </div>
+                    <div><h2 className="text-xl font-bold text-stone-500 mb-2">{scoreInfo.mode} 完了</h2><div className="text-6xl font-black font-serif text-emerald-500">{scoreInfo.score} / {scoreInfo.total}</div></div>
+                    <div className="w-full max-w-xs mx-auto space-y-3"><button onClick={() => setView('home')} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold shadow-md">ホームに戻る</button></div>
                 </div>
             );
         }
