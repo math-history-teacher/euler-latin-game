@@ -1,243 +1,68 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Euler's Latin Quest</title>
-    <!-- 必要なライブラリをCDNから読み込み -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Noto Sans JP', sans-serif; }
-        .font-serif { font-family: 'Noto Serif JP', serif; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeInUp 0.4s ease-out forwards; }
-    </style>
-</head>
-<body class="bg-stone-100">
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-
-        // --- アイコン (SVG形式で埋め込み) ---
-        const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-        const BookOpen = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
-        const List = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>;
-        const Brain = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.54Z"/></svg>;
-        const CheckCircle = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-        const ArrowRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-
-        // --- データ定義 ---
+// --- データ定義 ---
         const studyText = [
             { title: "タイトル", lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur.", jp: "自然数の累乗から生じる逆数の級数の和に関する第二の論文。そこでは同じ和が全く異なる源から導出される。" },
             { title: "§. I. (前半)", lat: "Postquam ante complures annos summas serierum in hac forma generali contentarum 1 + 1/2ⁿ + 1/3ⁿ + ... in infinitum, si n fuerit numerus par positivus, simulque etiam harum serierum, si n fuerit numerus impar 1 - 1/3ⁿ + 1/5ⁿ - ... in infinitum, ope quadraturae circuli exhibuissem,", jp: "数年前、一般形 1+1/2ⁿ+...（無限に続く）に含まれる級数の和を、もしnが正の偶数であれば、また同時に、もしnが奇数であれば、これらの級数 1-1/3ⁿ+...（無限に続く）の和を、円積法（円の求積）の助けを借りて私が示し、" },
-            { title: "§. I. (中盤)", lat: "atque ostendissem, summam perpetuo per eandem peripheriae circuli dignitatem, quam exponens n indicet, exprimi:", jp: "そして和が常に、指数nが示すのと同じ円周のべき乗によって表現されることを示した後、" },
-            { title: "§. I. (後半)", lat: "argumentum hoc acutissimis Geometris tantopere placuit, ut id non solum maxime probarent, verum etiam ipsi studium atque operam ad easdem summas methodis sibi familiaribus eruendas impenderent.", jp: "この主題は極めて鋭敏な幾何学者たちに大いに気に入られたので、彼らはそれを大いに承認しただけでなく、彼ら自身も自分たちに馴染みのある方法で同じ和を導出することに熱意と労力を注いだ。" }
+            { title: "§. I. (中盤1)", lat: "atque ostendissem, summam perpetuo per eandem peripheriae circuli dignitatem, quam exponens n indicet, exprimi:", jp: "そして和が常に、指数nが示すのと同じ円周のべき乗によって表現されることを示した後、" },
+            { title: "§. I. (中盤2)", lat: "argumentum hoc acutissimis Geometris tantopere placuit, ut id non solum maxime probarent, verum etiam ipsi studium atque operam ad easdem summas methodis sibi familiaribus eruendas impenderent.", jp: "この主題は極めて鋭敏な幾何学者たちに大いに気に入られたので、彼らはそれを大いに承認しただけでなく、彼ら自身も自分たちに馴染みのある方法で同じ和を導出することに熱意と労力を注いだ。" },
+            { title: "§. I. (後半1)", lat: "Ego quoque ab illo tempore multum fui occupatus in alia via investiganda, quae eodem deduceret,", jp: "私もまたその時から、同じ結果へ導く別の道（方法）を探求することに大いに専念してきた。" },
+            { title: "§. I. (後半2)", lat: "non tam ut veritatem inventam magis confirmarem, quam ut limites analyseos in hujus generis seriebus tractandis ulterius extenderem.", jp: "それは、発見された真理をさらに確証するためというよりはむしろ、この種の級数を扱う際の解析学の限界をさらに拡張するためであった。" }
         ];
 
         const vocabData = [
-            { q: "summa", options: ["和", "差", "積", "商"], a: "和", exp: "summa, -ae (f): 合計、和" },
-            { q: "series", options: ["級数", "関数", "極限", "変数"], a: "級数", exp: "series, -ei (f): 連続、級数" },
-            { q: "reciprocus", options: ["逆数の", "連続の", "無限の", "等しい"], a: "逆数の", exp: "reciprocus, -a, -um: 逆の、往復の" },
-            { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 累乗" },
-            { q: "diversus", options: ["異なる", "同じ", "平らな", "垂直の"], a: "異なる", exp: "diversus, -a, -um: 異なる、反対の" },
-            { q: "par", options: ["偶数の", "奇数の", "素数の", "虚数の"], a: "偶数の", exp: "par, paris: 等しい。（数学で）偶数の" },
-            { q: "impar", options: ["奇数の", "偶数の", "負の", "正の"], a: "奇数の", exp: "impar, imparis: 等しくない。（数学で）奇数の" },
-            { q: "ope", options: ["力・手段で", "頭脳で", "時間で", "空間で"], a: "力・手段で", exp: "ops, opis (f) の奪格。ope + 助格で「～の助けにより手段として」" },
-            { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周" },
-            { q: "eruo", options: ["導き出す", "隠す", "足す", "掛ける"], a: "導き出す", exp: "eruo, eruere: 導き出す" }
+            // 名詞・形容詞
+            { q: "summa", options: ["和", "差", "積", "商"], a: "和", exp: "summa, -ae (f): 合計、和。" },
+            { q: "series", options: ["級数", "関数", "極限", "変数"], a: "級数", exp: "series, -ei (f): 連続、級数。" },
+            { q: "reciprocus", options: ["逆数の", "連続の", "無限の", "等しい"], a: "逆数の", exp: "reciprocus, -a, -um: 逆の、往復の。数学では「逆数」。" },
+            { q: "potestas", options: ["累乗", "根", "比", "対数"], a: "累乗", exp: "potestas, -atis (f): 力。数学用語で「累乗（べき乗）」。" },
+            { q: "naturalis", options: ["自然の", "複雑な", "整った", "未知の"], a: "自然の", exp: "naturalis, -e: 自然の。numerorum naturalium で「自然数の」。" },
+            { q: "dissertatio", options: ["論文", "公式", "計算", "図形"], a: "論文", exp: "dissertatio, -onis (f): 論説、論文。" },
+            { q: "fons", options: ["源泉", "境界", "公式", "結果"], a: "源泉", exp: "fons, fontis (m): 泉、源。「異なる源から（ex fonte diverso）」。" },
+            { q: "diversus", options: ["異なる", "同じ", "平らな", "垂直の"], a: "異なる", exp: "diversus, -a, -um: 異なる、反対の。" },
+            { q: "complures", options: ["かなりの数の", "少数の", "無限の", "ゼロの"], a: "かなりの数の", exp: "complures, -a: かなりの数の、複数の。ante complures annos で「数年前」。" },
+            { q: "par", options: ["偶数の", "奇数の", "素数の", "虚数の"], a: "偶数の", exp: "par, paris: 等しい。数学で「偶数の」。" },
+            { q: "impar", options: ["奇数の", "偶数の", "負の", "正の"], a: "奇数の", exp: "impar, imparis: 等しくない。数学で「奇数の」。" },
+            { q: "ope", options: ["手段で", "頭脳で", "時間で", "空間で"], a: "手段で", exp: "ops（力）の奪格。ope + 属格で「～の手段（助け）によって」。" },
+            { q: "peripheria", options: ["円周", "直径", "半径", "面積"], a: "円周", exp: "peripheria, -ae (f): 円周。ギリシャ語由来。" },
+            { q: "dignitas", options: ["べき乗", "価値", "面積", "長さ"], a: "べき乗", exp: "dignitas, -atis (f): 威厳。当時は数学用語で「累乗（べき乗）」としても使われました。" },
+            { q: "exponens", options: ["指数", "係数", "変数", "定数"], a: "指数", exp: "exponens, -entis (m): 提示するもの。数学で「指数」。" },
+            { q: "argumentum", options: ["主題", "答え", "計算", "図"], a: "主題", exp: "argumentum, -i (n): 根拠、主題、議論。" },
+            { q: "acutus", options: ["鋭敏な", "有名な", "古い", "厳格な"], a: "鋭敏な", exp: "acutus, -a, -um: 鋭い。最上級（acutissimis）で「極めて鋭敏な」。" },
+            { q: "familiaris", options: ["馴染みのある", "新しい", "複雑な", "外国の"], a: "馴染みのある", exp: "familiaris, -e: 家族の、親しい、よく知っている。" },
+            { q: "veritas", options: ["真理", "偽り", "仮説", "証明"], a: "真理", exp: "veritas, -atis (f): 真理、真実。" },
+            { q: "limes", options: ["限界", "定義", "公式", "応用"], a: "限界", exp: "limes, -itis (m): 境界、限界。複数形で limites（限界）。" },
+            { q: "analysis", options: ["解析学", "幾何学", "代数学", "物理学"], a: "解析学", exp: "analysis, -is (f): 分析、解析学。ギリシャ語由来の単語です。" },
+            
+            // 動詞
+            { q: "ortus", options: ["生じた", "消えた", "等しい", "逆の"], a: "生じた", exp: "orior（生じる）の完了分詞。「～に由来する」。" },
+            { q: "exhibuissem", options: ["（私が）示した", "（私が）隠した", "（彼が）示した", "（彼が）隠した"], a: "（私が）示した", exp: "exhibeo（示す、提示する）の接続法・過去完了・1人称単数。" },
+            { q: "exprimi", options: ["表現される", "表現する", "計算される", "計算する"], a: "表現される", exp: "exprimo（表現する）の受動態・現在不定詞。" },
+            { q: "impenderent", options: ["費やした", "節約した", "思いついた", "諦めた"], a: "費やした", exp: "impendo（費やす、注ぐ）の接続法・未完了過去・3人称複数。" },
+            { q: "deduceret", options: ["導く", "戻る", "迷う", "止まる"], a: "導く", exp: "deduco（導き出す）の接続法・未完了過去・3人称単数。" },
+            { q: "confirmarem", options: ["確証する", "疑う", "発見する", "計算する"], a: "確証する", exp: "confirmo（強める、確実にする）の接続法・未完了過去・1人称単数。" },
+            { q: "extenderem", options: ["拡張する", "終わらせる", "整理する", "教える"], a: "拡張する", exp: "extendo（広げる、拡張する）の接続法・未完了過去・1人称単数。" }
         ];
 
         const grammarData = [
             { q: "「De summis」の summis は何格ですか？", options: ["奪格", "主格", "属格", "対格"], a: "奪格", exp: "前置詞 de（～について）は奪格を支配します。" },
-            { q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", options: ["serierum", "summis", "numerorum", "potestatibus"], a: "serierum", exp: "ortarum は属格・複数・女性。serierum（級数の）を修飾しています。" },
-            { q: "「in qua」の qua の先行詞は何ですか？", options: ["dissertatio", "summationes", "fonte", "ortarum"], a: "dissertatio", exp: "qua は単数・女性・奪格の関係代名詞。dissertatio（論文）を指します。" },
-            { q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", options: ["結果", "目的", "譲歩", "時間"], a: "結果", exp: "tantopere（それほどまでに）と呼応して結果を表します。" },
-            { q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", options: ["動形容詞", "現在分詞", "完了分詞", "不定法"], a: "動形容詞", exp: "ad + 対格の動形容詞で目的を表します。" }
+            { q: "「ex potestatibus ... ortarum」で、ortarum（生じた）が修飾している名詞はどれですか？", options: ["serierum", "summis", "numerorum", "potestatibus"], a: "serierum", exp: "ortarum は属格・複数・女性。離れた位置にある serierum（級数の）を修飾しています。" },
+            { q: "「in qua」の qua の先行詞は何ですか？", options: ["dissertatio", "summationes", "fonte", "ortarum"], a: "dissertatio", exp: "qua は単数・女性・奪格の関係代名詞。直前の dissertatio（論文）を指します。" },
+            { q: "「exhibuissem」の法と時制は何ですか？", options: ["接続法・過去完了", "直説法・未完了過去", "接続法・現在", "直説法・未来完了"], a: "接続法・過去完了", exp: "postquam（～した後）の節内で、過去の事象の完了を強調するために接続法過去完了が使われています。" },
+            { q: "「exprimi」はどのような形ですか？", options: ["不定法・受動態", "直説法・能動態", "命令法", "現在分詞"], a: "不定法・受動態", exp: "exprimo（表現する）の受動態・現在不定詞です。「表現されること」を意味します。" },
+            { q: "「tantopere placuit, ut ... probarent」の ut はどのような用法ですか？", options: ["結果", "目的", "譲歩", "時間"], a: "結果", exp: "tantopere（それほどまでに）という副詞と呼応して、「その結果～」という意味を表します。" },
+            { q: "「ad easdem summas ... eruendas」の eruendas はどの文法要素ですか？", options: ["動形容詞", "現在分詞", "完了分詞", "不定法"], a: "動形容詞", exp: "ad + 対格の動形容詞（ゲルンディウム的用法）で「～するために」という目的を表します。" },
+            { q: "「in alia via investiganda」の文法構造として正しい説明は？", options: ["前置詞 in ＋ 奪格の動形容詞", "前置詞 in ＋ 対格の動名詞", "絶対奪格", "主格の補語"], a: "前置詞 in ＋ 奪格の動形容詞", exp: "in + 奪格で「～において」。動形容詞 investiganda が via に性数格一致し「道を探求することにおいて」となります。" },
+            { q: "「limites analyseos」の analyseos の格は何ですか？", options: ["属格", "主格", "対格", "奪格"], a: "属格", exp: "ギリシャ語由来の名詞 analysis のギリシャ語風の属格変化です。「解析学の限界」となります。" },
+            { q: "「non tam ut ... quam ut ...」の正しい訳し方は？", options: ["～するためというより、むしろ～するため", "～するためだけでなく、～するためにも", "～する時もあれば、～する時もある", "～しない限り、～できない"], a: "～するためというより、むしろ～するため", exp: "non tam A quam B で「AというよりはむしろB」という比較の構文を作ります。" }
         ];
 
         const translationData = [
             { lat: "De summis serierum reciprocarum ex potestatibus numerorum naturalium ortarum", chunks: ["自然数の", "累乗から", "生じた", "逆数の級数の", "和について"], exp: "De(～について) summis(和) serierum(級数の) reciprocarum(逆数の) ex(～から) potestatibus(累乗) numerorum(数の) naturalium(自然の) ortarum(生じた)" },
-            { lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur", chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"], exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から)" },
+            { lat: "dissertatio altera in qua eaedem summationes ex fonte maxime diverso derivantur", chunks: ["第二の論文で,", "その中では", "同じ和が", "全く異なる源から", "導出される"], exp: "dissertatio(論文) altera(第二の) in qua(その中で) eaedem(同じ) summationes(和が) ex fonte(源から) maxime diverso(全く異なる) derivantur(導出される)" },
             { lat: "argumentum hoc acutissimis Geometris tantopere placuit,", chunks: ["この主題は", "極めて鋭敏な幾何学者たちに", "大いに気に入られたので,"], exp: "argumentum hoc(この主題は) acutissimis(極めて鋭敏な) Geometris(幾何学者たちに) tantopere(それほどまでに) placuit(気に入られた)" },
             { lat: "ut id non solum maxime probarent,", chunks: ["彼らは", "それを", "大いに", "承認した", "だけでなく,"], exp: "ut(その結果) id(それを) non solum(～だけでなく) maxime(大いに) probarent(彼らは承認した)" },
-            { lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent", chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"], exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) impenderent(注いだ)" }
+            { lat: "verum etiam ipsi studium atque operam ad easdem summas eruendas impenderent", chunks: ["彼ら自身も", "同じ和を", "導出することに", "熱意と労力を", "注いだ"], exp: "verum etiam(しかもまた) ipsi(彼ら自身も) studium atque operam(熱意と労力を) ad ... eruendas(導き出すために) easdem summas(同じ和を) impenderent(注いだ)" },
+            { lat: "Ego quoque ab illo tempore multum fui occupatus in alia via investiganda,", chunks: ["私もまた", "その時から", "別の道を探求することに", "大いに", "専念してきた,"], exp: "Ego quoque(私もまた) ab illo tempore(その時から) multum(大いに) fui occupatus(専念してきた) in alia via investiganda(別の道を探求することに)" },
+            { lat: "quae eodem deduceret,", chunks: ["そしてそれは", "同じ結果へ", "導く(道である)"], exp: "quae(そしてそれ=別の道が) eodem(同じ結果へ) deduceret(導くであろう)" },
+            { lat: "non tam ut veritatem inventam magis confirmarem,", chunks: ["発見された真理を", "さらに", "確証するため", "というよりはむしろ,"], exp: "non tam ut(～するためというよりは) veritatem inventam(発見された真理を) magis(さらに) confirmarem(確証する)" },
+            { lat: "quam ut limites analyseos in hujus generis seriebus tractandis ulterius extenderem.", chunks: ["この種の級数を", "扱う際の", "解析学の限界を", "さらに拡張する", "ためであった"], exp: "quam ut(むしろ～するため) limites analyseos(解析学の限界を) in hujus generis seriebus tractandis(この種の級数を扱う際において) ulterius(さらに) extenderem(拡張する)" }
         ];
-
-        // --- 子コンポーネント ---
-        function MenuButton({ icon, title, desc, onClick }) {
-            return (
-                <button onClick={onClick} className="w-full flex items-center text-left p-4 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                    <div className="p-3 bg-stone-50 rounded-lg mr-4">{icon}</div>
-                    <div>
-                        <h3 className="font-bold text-stone-800">{title}</h3>
-                        <p className="text-xs text-stone-500 mt-1">{desc}</p>
-                    </div>
-                </button>
-            );
-        }
-
-        function TabButton({ children, active, onClick }) {
-            return (
-                <button onClick={onClick} className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${active ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
-                    {children}
-                </button>
-            );
-        }
-
-        // --- メインアプリ ---
-        function App() {
-            const [view, setView] = useState('home');
-            const [scoreInfo, setScoreInfo] = useState({ score: 0, total: 0, mode: '' });
-
-            const finishQuiz = (score, total, mode) => {
-                setScoreInfo({ score, total, mode });
-                setView('result');
-            };
-
-            return (
-                <div className="min-h-screen bg-stone-100 text-stone-800 font-sans pb-10">
-                    <div className="max-w-2xl mx-auto bg-white min-h-screen shadow-xl md:mt-8 md:rounded-2xl overflow-hidden flex flex-col border border-stone-200">
-                        <header className="bg-stone-800 text-stone-50 p-4 flex items-center justify-between shadow-md z-10">
-                            <h1 className="text-xl font-serif font-bold tracking-wide">Euler's Latin Quest</h1>
-                            {view !== 'home' && (
-                                <button onClick={() => setView('home')} className="p-2 hover:bg-stone-700 rounded-full transition-colors flex items-center gap-1 text-sm">
-                                    <HomeIcon /> <span>ホーム</span>
-                                </button>
-                            )}
-                        </header>
-                        <div className="flex-1 overflow-y-auto bg-[#fdfbf7] animate-fade-in">
-                            {view === 'home' && <HomeView setView={setView} />}
-                            {view === 'study' && <StudyView />}
-                            {view === 'word' && <QuizView data={vocabData} modeName="単語クエスト" onFinish={finishQuiz} />}
-                            {view === 'grammar' && <QuizView data={grammarData} modeName="文法クエスト" onFinish={finishQuiz} />}
-                            {view === 'translation' && <TranslationQuiz data={translationData} onFinish={finishQuiz} />}
-                            {view === 'result' && <ResultView scoreInfo={scoreInfo} setView={setView} />}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        function HomeView({ setView }) {
-            return (
-                <div className="p-8 flex flex-col items-center justify-center space-y-8">
-                    <div className="text-center space-y-3">
-                        <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-700">De summis serierum...</h2>
-                        <p className="text-stone-500 text-sm">オイラーのラテン語論文読解ゲーム</p>
-                    </div>
-                    <div className="w-full max-w-sm space-y-4">
-                        <MenuButton icon={<BookOpen />} title="学習モード" desc="テキストと和訳・解説を読む" onClick={() => setView('study')} />
-                        <MenuButton icon={<List />} title="単語クエスト" desc="論文の重要単語の4択クイズ" onClick={() => setView('word')} />
-                        <MenuButton icon={<Brain />} title="文法クエスト" desc="構文や格変化のクイズ" onClick={() => setView('grammar')} />
-                        <MenuButton icon={<CheckCircle />} title="和訳クエスト" desc="和訳並べ替えパズル" onClick={() => setView('translation')} />
-                    </div>
-                </div>
-            );
-        }
-
-        function StudyView() {
-            const [tab, setTab] = useState('text');
-            return (
-                <div className="p-4 md:p-8 flex flex-col h-full">
-                    <div className="flex rounded-lg bg-stone-200 p-1 mb-6">
-                        <TabButton active={tab === 'text'} onClick={() => setTab('text')}>本文・和訳</TabButton>
-                        <TabButton active={tab === 'vocab'} onClick={() => setTab('vocab')}>語彙</TabButton>
-                        <TabButton active={tab === 'grammar'} onClick={() => setTab('grammar')}>文法</TabButton>
-                    </div>
-                    <div className="space-y-6">
-                        {tab === 'text' && studyText.map((block, i) => (
-                            <div key={i} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-                                <h4 className="text-xs font-bold text-stone-400 uppercase mb-2">{block.title}</h4>
-                                <p className="font-serif text-stone-800 text-lg leading-relaxed mb-4">{block.lat}</p>
-                                <p className="text-stone-600 text-sm border-t pt-3">{block.jp}</p>
-                            </div>
-                        ))}
-                        {tab === 'vocab' && vocabData.map((v, i) => (
-                            <div key={i} className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
-                                <span className="font-serif font-bold text-lg text-stone-800 block">{v.q}</span>
-                                <span className="text-stone-500 text-sm">{v.exp}</span>
-                            </div>
-                        ))}
-                        {tab === 'grammar' && grammarData.map((g, i) => (
-                            <div key={i} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-                                <p className="font-bold text-stone-800 mb-2">Q. {g.q}</p>
-                                <div className="bg-stone-50 p-3 rounded-lg mt-2 border border-stone-100">
-                                    <span className="text-xs font-bold text-emerald-600 uppercase mb-1 block">解説</span>
-                                    <p className="text-stone-600 text-sm">{g.exp}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
-        function QuizView({ data, modeName, onFinish }) {
-            const [qIdx, setQIdx] = useState(0);
-            const [selected, setSelected] = useState(null);
-            const [score, setScore] = useState(0);
-            const question = data[qIdx];
-            const handleSelect = (opt) => { if (!selected) { setSelected(opt); if (opt === question.a) setScore(s => s + 1); } };
-            const handleNext = () => { if (qIdx + 1 < data.length) { setQIdx(qIdx + 1); setSelected(null); } else { onFinish(score, data.length, modeName); } };
-            return (
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6 text-sm font-bold text-stone-500"><span>{modeName}</span><span>{qIdx + 1} / {data.length}</span></div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 text-center min-h-[120px] flex items-center justify-center"><h2 className="text-xl md:text-2xl font-serif text-stone-800">{question.q}</h2></div>
-                    <div className="space-y-3">
-                        {question.options.map((opt, i) => (
-                            <button key={i} onClick={() => handleSelect(opt)} disabled={!!selected} className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-lg ${!selected ? 'bg-white border-stone-200 hover:border-stone-300' : opt === question.a ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : opt === selected ? 'bg-rose-50 border-rose-400 text-rose-800' : 'opacity-50'}`}>{opt}</button>
-                        ))}
-                    </div>
-                    {selected && (
-                        <div className="mt-6 animate-fade-in">
-                            <div className={`p-4 rounded-xl mb-4 ${selected === question.a ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}><p className="text-sm font-bold">{selected === question.a ? '正解！' : '不正解...'}</p><p className="text-sm mt-1">{question.exp}</p></div>
-                            <button onClick={handleNext} className="w-full py-4 bg-stone-800 text-white font-bold rounded-xl flex items-center justify-center gap-2"> {qIdx + 1 === data.length ? '結果を見る' : '次の問題へ'} <ArrowRight /> </button>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        function TranslationQuiz({ data, onFinish }) {
-            const [qIdx, setQIdx] = useState(0);
-            const [available, setAvailable] = useState([]);
-            const [selected, setSelected] = useState([]);
-            const [hasAnswered, setHasAnswered] = useState(false);
-            const [score, setScore] = useState(0);
-            const question = data[qIdx];
-            useEffect(() => { setAvailable([...question.chunks].sort(() => Math.random() - 0.5)); setSelected([]); setHasAnswered(false); }, [qIdx, question]);
-            const selectChunk = (chunk, idx) => { if (!hasAnswered) { setAvailable(a => a.filter((_, i) => i !== idx)); setSelected(s => [...s, chunk]); } };
-            const deselectChunk = (chunk, idx) => { if (!hasAnswered) { setSelected(s => s.filter((_, i) => i !== idx)); setAvailable(a => [...a, chunk]); } };
-            const check = () => { setHasAnswered(true); if (selected.join('') === question.chunks.join('')) setScore(s => s + 1); };
-            return (
-                <div className="p-6">
-                    <div className="mb-4 text-sm font-bold text-stone-500">和訳並べ替え {qIdx + 1}/{data.length}</div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border mb-6 font-serif text-lg leading-relaxed">{question.lat}</div>
-                    <div className="min-h-[100px] bg-stone-100/50 rounded-xl border-2 border-dashed p-3 flex flex-wrap gap-2 mb-6">
-                        {selected.map((c, i) => <button key={i} onClick={() => deselectChunk(c, i)} className={`px-4 py-2 rounded-lg font-bold text-sm shadow-sm ${hasAnswered ? (selected.join('') === question.chunks.join('') ? 'bg-emerald-100' : 'bg-rose-100') : 'bg-white'}`}>{c}</button>)}
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-8">{available.map((c, i) => <button key={i} onClick={() => selectChunk(c, i)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm shadow-md" disabled={hasAnswered}>{c}</button>)}</div>
-                    {!hasAnswered ? <button onClick={check} disabled={selected.length !== question.chunks.length} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold disabled:opacity-30">判定する</button> : 
-                    <div className="animate-fade-in"><div className="p-4 bg-stone-100 rounded-xl mb-4 text-sm">{question.exp}</div><button onClick={() => qIdx + 1 < data.length ? setQIdx(qIdx + 1) : onFinish(score, data.length, "和訳並べ替え")} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold">次へ</button></div>}
-                </div>
-            );
-        }
-
-        function ResultView({ scoreInfo, setView }) {
-            return (
-                <div className="p-10 text-center space-y-8 animate-fade-in">
-                    <div><h2 className="text-xl font-bold text-stone-500 mb-2">{scoreInfo.mode} 完了</h2><div className="text-6xl font-black font-serif text-emerald-500">{scoreInfo.score} / {scoreInfo.total}</div></div>
-                    <div className="w-full max-w-xs mx-auto space-y-3"><button onClick={() => setView('home')} className="w-full py-4 bg-stone-800 text-white rounded-xl font-bold shadow-md">ホームに戻る</button></div>
-                </div>
-            );
-        }
-
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
-</body>
-</html>
